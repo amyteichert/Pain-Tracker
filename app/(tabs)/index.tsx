@@ -13,6 +13,30 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { savePain, loadPain } from "../../utils/pain-storage";
 import React, { useEffect, useState } from "react";
 import PainChart from "@/components/PainChart";
+import { LinearGradient } from "expo-linear-gradient";
+
+function Header() {
+  return (
+    <LinearGradient
+      colors={["#ff2d55", "#ff9500"]}
+      style={{
+        paddingTop: 60,
+        paddingBottom: 20,
+        paddingHorizontal: 16,
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
+      }}
+    >
+      <Text style={{ color: "white", fontSize: 28, fontWeight: "700" }}>
+        Übersicht
+      </Text>
+
+      <Text style={{ color: "white", opacity: 0.9, marginTop: 6 }}>
+        14 Tage Schmerzkurve überschritten
+      </Text>
+    </LinearGradient>
+  );
+}
 
 type PainEntry = {
   value: number;
@@ -368,13 +392,8 @@ gridContainer: {
 
 
 card: {
-  width: "45%", 
-  minHeight: 150,
-  marginVertical: 8,
-  borderRadius: 20,
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "#0f1c3f",
+  alignSelf: "stretch",
+  marginHorizontal: 16,
 },
 
   cardText: {
