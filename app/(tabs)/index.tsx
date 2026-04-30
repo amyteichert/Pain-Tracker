@@ -12,7 +12,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import PainChart from "@/components/PainChart";
-import { savePain } from "@/utils/pain-storage";
+import { savePain, loadPain } from "@/utils/pain-storage";
 
 const painLevels = [
   "Kein Schmerz – Körper fühlt sich komplett normal an.",
@@ -42,6 +42,11 @@ export default function Home() {
 
   useEffect(() => {
     // Load pain history on mount
+    const loadHistory = async () => {
+      const data = await loadPain();
+      setHistory(data);
+    };
+    loadHistory();
   }, []);
 
   const toggle = (value: string, list: string[], setList: any) => {
@@ -109,14 +114,16 @@ export default function Home() {
       <StatusBar barStyle="light-content" />
 
       {/* DASHBOARD */}
-      <View style={styles.gridContainer}>
-        <Card title="Schmerz" onPress={() => setModal("pain")} />
-        <Card title="Schmerzart" onPress={() => setModal("type")} />
-        <Card title="Trigger" onPress={() => setModal("trigger")} />
-        <Card title="Medikamente" onPress={() => setModal("med")} />
-        <Card title="Verlauf" onPress={() => setModal("history")} />
-        <Card title="KI Analyse" onPress={() => setModal("ai")} />
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.gridContainer}>
+          <Card title="Schmerz" onPress={() => setModal("pain")} />
+          <Card title="Schmerzart" onPress={() => setModal("type")} />
+          <Card title="Trigger" onPress={() => setModal("trigger")} />
+          <Card title="Medikamente" onPress={() => setModal("med")} />
+          <Card title="Verlauf" onPress={() => setModal("history")} />
+          <Card title="KI Analyse" onPress={() => setModal("ai")} />
+        </View>
+      </ScrollView>
 
       {/* MODAL */}
       <Modal visible={modal !== null} animationType="slide">
@@ -333,6 +340,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#050713",
   },
 
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
+
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 60,
     paddingBottom: 20,
@@ -367,20 +379,28 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    padding: 10,
+    padding: 16,
+    justifyContent: "space-between",
   },
 
   card: {
     width: "48%",
-    margin: "1%",
+    marginBottom: 16,
     backgroundColor: "#111827",
-    padding: 16,
+    padding: 20,
     borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: "#5B8CFF",
   },
 
   cardText: {
     color: "white",
-    fontWeight: "600",
+    fontWeight: "700",
+    fontSize: 16,
+    textAlign: "center",
   },
 
   modal: {
