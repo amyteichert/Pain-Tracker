@@ -10,6 +10,7 @@ import {
   Platform,
   TextInput,
   SafeAreaView,
+  ImageBackground,
 } from "react-native";
 import PainChart from "@/components/PainChart";
 import { savePain, loadPain } from "@/utils/pain-storage";
@@ -110,39 +111,49 @@ export default function Home() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <ImageBackground
+      source={require("@/assets/images/wave-bg.png")}
+      style={styles.imageBackground}
+    >
+      <View style={styles.overlay} />
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" />
 
-      {/* DASHBOARD */}
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.gridContainer}>
-          <Card title="Schmerz" onPress={() => setModal("pain")} />
-          <Card title="Schmerzart" onPress={() => setModal("type")} />
-          <Card title="Trigger" onPress={() => setModal("trigger")} />
-          <Card title="Medikamente" onPress={() => setModal("med")} />
-          <Card title="Verlauf" onPress={() => setModal("history")} />
-          <Card title="KI Analyse" onPress={() => setModal("ai")} />
-        </View>
-      </ScrollView>
+        {/* DASHBOARD */}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.gridContainer}>
+            <Card title="Schmerz" onPress={() => setModal("pain")} />
+            <Card title="Schmerzart" onPress={() => setModal("type")} />
+            <Card title="Trigger" onPress={() => setModal("trigger")} />
+            <Card title="Medikamente" onPress={() => setModal("med")} />
+            <Card title="Verlauf" onPress={() => setModal("history")} />
+            <Card title="KI Analyse" onPress={() => setModal("ai")} />
+          </View>
+        </ScrollView>
 
-      {/* MODAL */}
-      <Modal visible={modal !== null} animationType="slide">
-        <SafeAreaView style={styles.modal}>
-          <Header
-            title={
-              modal === "pain"
-                ? "Schmerz"
-                : modal === "type"
-                ? "Schmerzart"
-                : modal === "trigger"
-                ? "Trigger"
-                : modal === "history"
-                ? "Verlauf"
-                : modal === "ai"
-                ? "KI Analyse"
-                : "Medikamente"
-            }
-          />
+        {/* MODAL */}
+        <Modal visible={modal !== null} animationType="slide">
+          <ImageBackground
+            source={require("@/assets/images/wave-bg.png")}
+            style={styles.imageBackground}
+          >
+            <View style={styles.overlay} />
+            <SafeAreaView style={styles.modal}>
+              <Header
+                title={
+                  modal === "pain"
+                    ? "Schmerz"
+                    : modal === "type"
+                    ? "Schmerzart"
+                    : modal === "trigger"
+                    ? "Trigger"
+                    : modal === "history"
+                    ? "Verlauf"
+                    : modal === "ai"
+                    ? "KI Analyse"
+                    : "Medikamente"
+                }
+              />
 
           <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
             {/* VERLAUF */}
@@ -326,18 +337,31 @@ export default function Home() {
               </View>
             )}
           </ScrollView>
-        </SafeAreaView>
-      </Modal>
-    </SafeAreaView>
+            </SafeAreaView>
+          </ImageBackground>
+        </Modal>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 /* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
+  imageBackground: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(5, 7, 19, 0.65)",
+  },
+
   container: {
     flex: 1,
-    backgroundColor: "#050713",
+    backgroundColor: "transparent",
   },
 
   scrollContent: {
@@ -386,7 +410,7 @@ const styles = StyleSheet.create({
   card: {
     width: "48%",
     marginBottom: 16,
-    backgroundColor: "#111827",
+    backgroundColor: "rgba(17, 24, 39, 0.8)",
     padding: 20,
     borderRadius: 16,
     justifyContent: "center",
@@ -405,7 +429,7 @@ const styles = StyleSheet.create({
 
   modal: {
     flex: 1,
-    backgroundColor: "#050713",
+    backgroundColor: "transparent",
   },
 
   section: {
@@ -419,7 +443,7 @@ const styles = StyleSheet.create({
   painRow: {
     padding: 12,
     marginVertical: 6,
-    backgroundColor: "#0E1630",
+    backgroundColor: "rgba(14, 22, 48, 0.8)",
     borderRadius: 12,
   },
 
@@ -428,7 +452,7 @@ const styles = StyleSheet.create({
   },
 
   descBox: {
-    backgroundColor: "#0E1630",
+    backgroundColor: "rgba(14, 22, 48, 0.8)",
     padding: 16,
     borderRadius: 12,
     marginVertical: 16,
@@ -455,7 +479,7 @@ const styles = StyleSheet.create({
   entry: {
     marginTop: 10,
     padding: 12,
-    backgroundColor: "#0E1630",
+    backgroundColor: "rgba(14, 22, 48, 0.8)",
     borderRadius: 12,
   },
 
@@ -467,7 +491,7 @@ const styles = StyleSheet.create({
   },
 
   timelineContent: {
-    backgroundColor: "#0E1630",
+    backgroundColor: "rgba(14, 22, 48, 0.8)",
     padding: 12,
     borderRadius: 8,
   },
@@ -482,12 +506,12 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: "#0E1630",
+    backgroundColor: "rgba(14, 22, 48, 0.8)",
     borderRadius: 20,
   },
 
   input: {
-    backgroundColor: "#0E1630",
+    backgroundColor: "rgba(14, 22, 48, 0.8)",
     color: "white",
     padding: 12,
     marginBottom: 12,
