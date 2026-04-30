@@ -1,101 +1,48 @@
+import React, { useState, useEffect } from "react";
 import {
   Modal,
-  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  View
+  View,
+  Platform,
+  TextInput,
+  SafeAreaView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { savePain, loadPain } from "../../utils/pain-storage";
-import React, { useEffect, useState } from "react";
 import PainChart from "@/components/PainChart";
-import { LinearGradient } from "expo-linear-gradient";
+import { savePain } from "@/utils/pain-storage";
 
-function Header() {
-  return (
-    <LinearGradient
-      colors={["#ff2d55", "#ff9500"]}
-      style={{
-        paddingTop: 60,
-        paddingBottom: 20,
-        paddingHorizontal: 16,
-        borderBottomLeftRadius: 20,
-        borderBottomRightRadius: 20,
-      }}
-    >
-      <Text style={{ color: "white", fontSize: 28, fontWeight: "700" }}>
-        Übersicht
-      </Text>
+const painLevels = [
+  "Kein Schmerz – Körper fühlt sich komplett normal an.",
+  "Sehr leicht – kaum wahrnehmbar, nur wenn du dich darauf konzentrierst.",
+  "Leicht – da, aber du kannst es gut ignorieren.",
+  "Leicht bis merkbar – taucht kurz ins Bewusstsein auf.",
+  "Deutlich spürbar – lenkt manchmal ab.",
+  "Mittlerer Schmerz – dauerhaft präsent, aber noch kontrollierbar.",
+  "Mittlerer bis starker Schmerz – beginnt dich im Alltag zu stören.",
+  "Stark – beeinflusst Bewegung oder Konzentration deutlich.",
+  "Sehr stark – dominiert dein Körpergefühl.",
+  "Extrem – kaum auszublenden, sehr belastend.",
+  "Extrem – kaum auszublenden, sehr belastend.",
+];
 
-      <Text style={{ color: "white", opacity: 0.9, marginTop: 6 }}>
-        14 Tage Schmerzkurve überschritten
-      </Text>
-    </LinearGradient>
-  );
-}
-
-type PainEntry = {
-  value: number;
-  timestamp: number;
-  types?: string[];
-  triggers?: string[];
-  medName?: string;
-  medMg?: string;
-};
+const typesList = ["stechend", "ziehend", "dumpf", "krampfend"];
+const triggerList = ["Stress", "Bewegung", "Essen", "Ruhe", "Schlaf", "Sonstiges"];
 
 export default function Home() {
-  const [modal, setModal] = useState<
-    null | "pain" | "type" | "trigger" | "med" | "history" | "ai"
-  >(null);
-
+  const [modal, setModal] = useState<string | null>(null);
   const [pain, setPain] = useState<number | null>(null);
-  const [history, setHistory] = useState<PainEntry[]>([]);
-
+  const [history, setHistory] = useState<any[]>([]);
   const [types, setTypes] = useState<string[]>([]);
   const [triggers, setTriggers] = useState<string[]>([]);
-
-  const [medName, setMedName] = useState("");
-  const [medMg, setMedMg] = useState("");
-
-  // 🎨 Schmerz → Farbe
-  const getPainColor = (value: number) => {
-    if (value <= 3) return "#4ade80"; // grün
-    if (value <= 6) return "#facc15"; // gelb
-    if (value <= 8) return "#fb923c"; // orange
-    return "#ef4444"; // rot
-  };
+  const [medName, setMedName] = useState<string>("");
+  const [medMg, setMedMg] = useState<string>("");
 
   useEffect(() => {
-    const init = async () => {
-      const stored = await loadPain();
-      if (Array.isArray(stored)) {
-        setHistory(stored);
-      }
-    };
-
-    init();
+    // Load pain history on mount
   }, []);
-
-  const painLevels = [
-    "Kein Schmerz – Körper fühlt sich komplett normal an.",
-    "Sehr leicht – kaum wahrnehmbar, nur wenn du dich darauf konzentrierst.",
-    "Leicht – da, aber du kannst es gut ignorieren.",
-    "Leicht bis merkbar – taucht kurz ins Bewusstsein auf.",
-    "Deutlich spürbar – lenkt manchmal ab.",
-    "Mittlerer Schmerz – dauerhaft präsent, aber noch kontrollierbar.",
-    "Mittlerer bis starker Schmerz – beginnt dich im Alltag zu stören.",
-    "Stark – beeinflusst Bewegung oder Konzentration deutlich.",
-    "Sehr stark – dominiert dein Körpergefühl.",
-    "Extrem – kaum auszublenden, sehr belastend.",
-    "Extrem – kaum auszublenden, sehr belastend.",
-  ];
-
-  const typesList = ["stechend", "ziehend", "dumpf", "krampfend"];
-  const triggerList = ["Stress", "Bewegung", "Essen", "Ruhe", "Schlaf", "Sonstiges"];
 
   const toggle = (value: string, list: string[], setList: any) => {
     setList(
@@ -117,183 +64,191 @@ export default function Home() {
     </TouchableOpacity>
   );
 
-const Header = ({ title }: any) => (
-  <View style={styles.header}>
+  const Header = ({ title }: any) => (
+    <View style={styles.header}>
+      <TouchableOpacity
+        onPress={() => setModal(null)}
+        style={styles.backBtn}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.backText}>← Zurück</Text>
+      </TouchableOpacity>
 
-    <TouchableOpacity
-      onPress={() => setModal(null)}
-      style={styles.backBtn}
-      activeOpacity={0.7}
-    >
-      <Text style={styles.backText}>← Zurück</Text>
-    </TouchableOpacity>
+      <Text style={styles.headerTitle} numberOfLines={1}>
+        {title}
+      </Text>
 
-    <Text style={styles.headerTitle} numberOfLines={1}>
-      {title}
-    </Text>
+      <View style={{ width: 90 }} />
+    </View>
+  );
 
-    <View style={{ width: 90 }} />
-  </View>
-);
+  const save = async () => {
+    if (pain === null) return;
+
+    const newEntry = {
+      value: pain,
+      timestamp: Date.now(),
+      types,
+      triggers,
+      medName,
+      medMg,
+    };
+
+    const updated = [...history, newEntry];
+    setHistory(updated);
+    await savePain(updated);
+    setModal(null);
+    setPain(null);
+    setMedName("");
+    setMedMg("");
+    console.log("GESPEICHERT:", newEntry);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-   {/* DASHBOARD */}
-<View style={styles.gridContainer}>
-
-  <Card title="Schmerz" onPress={() => setModal("pain")} />
-  <Card title="Schmerzart" onPress={() => setModal("type")} />
-  <Card title="Trigger" onPress={() => setModal("trigger")} />
-  <Card title="Medikamente" onPress={() => setModal("med")} />
-  <Card title="Verlauf" onPress={() => setModal("history")} />
-  <Card title="KI Analyse" onPress={() => setModal("ai")} />
-
-</View>
+      {/* DASHBOARD */}
+      <View style={styles.gridContainer}>
+        <Card title="Schmerz" onPress={() => setModal("pain")} />
+        <Card title="Schmerzart" onPress={() => setModal("type")} />
+        <Card title="Trigger" onPress={() => setModal("trigger")} />
+        <Card title="Medikamente" onPress={() => setModal("med")} />
+        <Card title="Verlauf" onPress={() => setModal("history")} />
+        <Card title="KI Analyse" onPress={() => setModal("ai")} />
+      </View>
 
       {/* MODAL */}
       <Modal visible={modal !== null} animationType="slide">
-        <SafeAreaView style={styles.modal} edges={["top", "left", "right"]}>
+        <SafeAreaView style={styles.modal}>
           <Header
-           title={
-  modal === "pain"
-    ? "Schmerz"
-    : modal === "type"
-    ? "Schmerzart"
-    : modal === "trigger"
-    ? "Trigger"
-    : modal === "history"
-    ? "Verlauf"
-    : modal === "ai"
-    ? "KI Analyse"
-    : "Medikamente"
-}
+            title={
+              modal === "pain"
+                ? "Schmerz"
+                : modal === "type"
+                ? "Schmerzart"
+                : modal === "trigger"
+                ? "Trigger"
+                : modal === "history"
+                ? "Verlauf"
+                : modal === "ai"
+                ? "KI Analyse"
+                : "Medikamente"
+            }
           />
 
           <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
             {/* VERLAUF */}
-{modal === "history" && (
-  <View style={styles.section}>
+            {modal === "history" && (
+              <View style={styles.section}>
+                <PainChart data={history} />
 
-    <PainChart data={history} />
-
-    {history.length === 0 && (
-      <Text style={{ color: "#9AA8C7" }}>
-        Noch keine Einträge
-      </Text>
-    )}
-
-    <View style={{ marginTop: 10 }}>
-      {history
-        .slice()
-        .reverse()
-        .map((entry, index) => {
-          const date = new Date(entry.timestamp);
-
-          return (
-            <View key={index} style={styles.timelineItem}>
-
-              <View style={styles.timelineContent}>
-
-                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
-                  Schmerz: {entry.value}/10
-                </Text>
-
-               {entry.types && entry.types.length > 0 && (
-  <Text style={{ color: "#9AA8C7", fontSize: 12 }}>
-    Typ: {entry.types.join(", ")}
-  </Text>
-)}
-
-              {entry.triggers && entry.triggers.length > 0 && (
-  <Text style={{ color: "#9AA8C7", fontSize: 12 }}>
-    Trigger: {entry.triggers.join(", ")}
-  </Text>
-)}
-
-                {entry.medName && (
-                  <Text style={{ color: "#9AA8C7", fontSize: 12 }}>
-                    Medikament: {entry.medName} {entry.medMg ? `${entry.medMg}mg` : ""}
-                  </Text>
+                {history.length === 0 && (
+                  <Text style={{ color: "#9AA8C7" }}>Noch keine Einträge</Text>
                 )}
 
-                <Text style={{ color: "#666", fontSize: 11, marginTop: 4 }}>
-                  {date.toLocaleDateString()} • {date.toLocaleTimeString().slice(0, 5)}
-                </Text>
+                <View style={{ marginTop: 10 }}>
+                  {history
+                    .slice()
+                    .reverse()
+                    .map((entry, index) => {
+                      const date = new Date(entry.timestamp);
 
+                      return (
+                        <View key={index} style={styles.timelineItem}>
+                          <View style={styles.timelineContent}>
+                            <Text
+                              style={{
+                                color: "#fff",
+                                fontWeight: "700",
+                                fontSize: 16,
+                              }}
+                            >
+                              Schmerz: {entry.value}/10
+                            </Text>
+
+                            {entry.types?.length > 0 && (
+                              <Text
+                                style={{
+                                  color: "#9AA8C7",
+                                  fontSize: 12,
+                                }}
+                              >
+                                Typ: {entry.types.join(", ")}
+                              </Text>
+                            )}
+
+                            {entry.triggers?.length > 0 && (
+                              <Text
+                                style={{
+                                  color: "#9AA8C7",
+                                  fontSize: 12,
+                                }}
+                              >
+                                Trigger: {entry.triggers.join(", ")}
+                              </Text>
+                            )}
+
+                            {entry.medName && (
+                              <Text
+                                style={{
+                                  color: "#9AA8C7",
+                                  fontSize: 12,
+                                }}
+                              >
+                                Medikament: {entry.medName}{" "}
+                                {entry.medMg ? `${entry.medMg}mg` : ""}
+                              </Text>
+                            )}
+
+                            <Text
+                              style={{
+                                color: "#666",
+                                fontSize: 11,
+                                marginTop: 4,
+                              }}
+                            >
+                              {date.toLocaleDateString()} •{" "}
+                              {date.toLocaleTimeString().slice(0, 5)}
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    })}
+                </View>
               </View>
+            )}
 
-            </View>
-          );
-        })}
-    </View>
+            {/* PAIN */}
+            {modal === "pain" && (
+              <View style={styles.section}>
+                <View style={styles.painColumn}>
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                    <TouchableOpacity
+                      key={i}
+                      onPress={() => setPain(i)}
+                      style={[styles.painRow, pain === i && styles.active]}
+                    >
+                      <Text style={styles.painText}>
+                        {i} / 10 – {painLevels[i]}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
 
-  </View>
-)}  
-      
-           {/* PAIN */}
-{modal === "pain" && (
-  <View style={styles.section}>
+                {pain !== null && (
+                  <View style={styles.descBox}>
+                    <Text style={styles.descText}>{painLevels[pain]}</Text>
+                  </View>
+                )}
 
-    {/* LISTE 0 → 10 */}
-    <View style={styles.painColumn}>
-      {[0,1,2,3,4,5,6,7,8,9,10].map((i) => (
-        <TouchableOpacity
-          key={i}
-          onPress={() => setPain(i)}
-          style={[
-            styles.painRow,
-            pain === i && styles.active,
-          ]}
-        >
-          <Text style={styles.painText}>
-            {i} / 10 – {painLevels[i]}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-
-    {/* AUSGEWÄHLTE BESCHREIBUNG */}
-    {pain !== null && (
-      <View style={styles.descBox}>
-        <Text style={styles.descText}>
-          {painLevels[pain]}
-        </Text>
-      </View>
-    )}
-
-    {/* SPEICHERN BUTTON (WICHTIG: AUSSERHALB DER MAP) */}
-   <TouchableOpacity
-  style={styles.save}
-  onPress={async () => {
-    if (pain === null) return;
-
-    const newEntry = {
-  value: pain,
-  timestamp: Date.now(),
-  types,
-  triggers,
-  medName,
-  medMg,
-};
-
-    const updated = [...history, newEntry];
-
-    setHistory(updated);
-
-    await savePain(updated);
-
-    console.log("GESPEICHERT:", newEntry);
-  }}
->
-  <Text style={{ color: "#fff", fontWeight: "600" }}>
-    Speichern
-  </Text>
-</TouchableOpacity>
-
-  </View>
-)}
+                <TouchableOpacity style={styles.save} onPress={save}>
+                  <Text style={{ color: "#fff", fontWeight: "600" }}>
+                    Speichern
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* TYPE */}
             {modal === "type" && (
@@ -303,10 +258,7 @@ const Header = ({ title }: any) => (
                     <TouchableOpacity
                       key={t}
                       onPress={() => toggle(t, types, setTypes)}
-                      style={[
-                        styles.chip,
-                        types.includes(t) && styles.active,
-                      ]}
+                      style={[styles.chip, types.includes(t) && styles.active]}
                     >
                       <Text style={{ color: "#fff" }}>{t}</Text>
                     </TouchableOpacity>
@@ -339,9 +291,9 @@ const Header = ({ title }: any) => (
               </View>
             )}
 
-            {/* MEDS */}
+            {/* MED */}
             {modal === "med" && (
-              <View style={styles.section}>
+              <View style={{ padding: 16 }}>
                 <TextInput
                   placeholder="Medikament"
                   placeholderTextColor="#666"
@@ -359,10 +311,13 @@ const Header = ({ title }: any) => (
                   style={styles.input}
                 />
 
-                <SaveButton />
+                <TouchableOpacity style={styles.save} onPress={save}>
+                  <Text style={{ color: "#fff", fontWeight: "600" }}>
+                    Speichern
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
-
           </ScrollView>
         </SafeAreaView>
       </Modal>
@@ -373,182 +328,149 @@ const Header = ({ title }: any) => (
 /* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
-container: {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  padding: 10,
-},
+  container: {
+    flex: 1,
+    backgroundColor: "#050713",
+  },
 
-row: {
-  flexDirection: "row",
-},
+  header: {
+    paddingTop: Platform.OS === "ios" ? 50 : 60,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
 
-gridContainer: {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  paddingHorizontal: 10,
-  marginTop: 20,
-},
-
-
-card: {
-  alignSelf: "stretch",
-  marginHorizontal: 16,
-},
-
-  cardText: {
-  fontSize: 18,
-  color: "white",
-  fontWeight: "600",
-},
-
- modal: {
-  flex: 1,
-  backgroundColor: "#050713",
-},
-
- header: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  paddingHorizontal: 16,
-  paddingTop: Platform.OS === "ios" ? 10 : 20,
-  paddingBottom: 10,
-},
-
-backBtn: {
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-  backgroundColor: "#0E1630",
-  borderRadius: 14,
-  minWidth: 100,
-  alignItems: "center",
-  justifyContent: "center",
-
-  // sorgt dafür dass er NICHT zu nah an der Uhr ist
-  marginTop: 6,
-},
+  backBtn: {
+    padding: 8,
+  },
 
   backText: {
-    color: "#9AA8C7",
+    color: "#5B8CFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
 
   headerTitle: {
-    color: "#fff",
-    fontSize: 16,
+    color: "white",
+    fontSize: 28,
     fontWeight: "700",
+    marginVertical: 10,
+  },
+
+  headerSub: {
+    color: "white",
+    opacity: 0.8,
+    marginTop: 6,
+  },
+
+  gridContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    padding: 10,
+  },
+
+  card: {
+    width: "48%",
+    margin: "1%",
+    backgroundColor: "#111827",
+    padding: 16,
+    borderRadius: 16,
+  },
+
+  cardText: {
+    color: "white",
+    fontWeight: "600",
+  },
+
+  modal: {
+    flex: 1,
+    backgroundColor: "#050713",
   },
 
   section: {
     padding: 16,
   },
 
-  gridWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+  painColumn: {
+    marginBottom: 20,
   },
 
-  bubble: {
-    width: 45,
-    height: 42,
-    borderRadius: 21,
-    margin: 6,
+  painRow: {
+    padding: 12,
+    marginVertical: 6,
     backgroundColor: "#0E1630",
-    justifyContent: "center",
-    alignItems: "center",
+    borderRadius: 12,
   },
 
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    margin: 6,
+  painText: {
+    color: "#fff",
+  },
+
+  descBox: {
     backgroundColor: "#0E1630",
+    padding: 16,
+    borderRadius: 12,
+    marginVertical: 16,
+  },
+
+  descText: {
+    color: "#9AA8C7",
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   active: {
     backgroundColor: "#5B8CFF",
   },
 
-  desc: {
-    color: "#9AA8C7",
-    marginTop: 12,
-  },
-
-  input: {
-    backgroundColor: "#0E1630",
-    color: "#fff",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 10,
-  },
-
   save: {
-    marginTop: 18,
+    marginTop: 20,
     backgroundColor: "#5B8CFF",
     padding: 14,
     borderRadius: 14,
     alignItems: "center",
   },
 
-  painColumn: {
-  marginTop: 10,
-},
+  entry: {
+    marginTop: 10,
+    padding: 12,
+    backgroundColor: "#0E1630",
+    borderRadius: 12,
+  },
 
-painRow: {
-  backgroundColor: "#0E1630",
-  paddingVertical: 10,
-  paddingHorizontal: 12,
-  borderRadius: 14,
-  marginBottom: 8,
-},
+  timelineItem: {
+    marginBottom: 16,
+    paddingLeft: 16,
+    borderLeftWidth: 2,
+    borderLeftColor: "#5B8CFF",
+  },
 
-painText: {
-  color: "#fff",
-  fontSize: 13,
-},
+  timelineContent: {
+    backgroundColor: "#0E1630",
+    padding: 12,
+    borderRadius: 8,
+  },
 
-descBox: {
-  marginTop: 10,
-  padding: 12,
-  backgroundColor: "#0E1630",
-  borderRadius: 12,
-},
+  gridWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 20,
+  },
 
-descText: {
-  color: "#9AA8C7",
-  fontSize: 13,
-},
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#0E1630",
+    borderRadius: 20,
+  },
 
-timelineItem: {
-  marginBottom: 12,
-},
-
-timelineLeft: {
-  width: 45,
-  alignItems: "center",
-},
-
-dot: {
-  width: 10,
-  height: 10,
-  borderRadius: 5,
-},
-
-line: {
-  width: 2,
-  flex: 1,
-  backgroundColor: "#1f2a44",
-  marginTop: 2,
-},
-
-timelineContent: {
-  flex: 1,
-  marginLeft: 10,
-  padding: 14,
-  backgroundColor: "#0E1630",
-  borderRadius: 14,
-  borderWidth: 1,
-  borderColor: "rgba(91,140,255,0.15)",
-},
+  input: {
+    backgroundColor: "#0E1630",
+    color: "white",
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 8,
+  },
 });
