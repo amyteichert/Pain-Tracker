@@ -12,6 +12,7 @@ export default function Html() {
 
         <link rel="apple-touch-icon" href="/icon.png" />
       </head>
+      <body />
     </html>
   );
 }
